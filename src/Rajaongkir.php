@@ -48,14 +48,65 @@ class Rajaongkir
         ], $this->client->get('/v1/destination/international-destination', ['search' => $query]));
     }
 
+    public function provinces(): array
+    {
+        return array_map(
+            fn (array $item) => $this->normalizeLocationItem($item, ['province_id', 'id'], ['province_name', 'province', 'name']),
+            $this->client->get('/v1/destination/province')
+        );
+    }
+
+    public function cities(int|string $provinceId): array
+    {
+        return array_map(
+            fn (array $item) => $this->normalizeLocationItem($item, ['city_id', 'id'], ['city_name', 'city', 'name']),
+            $this->client->get("/v1/destination/city/{$provinceId}")
+        );
+    }
+
+    public function districts(int|string $cityId): array
+    {
+        return array_map(
+            fn (array $item) => $this->normalizeLocationItem($item, ['district_id', 'id'], ['district_name', 'district', 'name']),
+            $this->client->get("/v1/destination/district/{$cityId}")
+        );
+    }
+
+    public function subDistricts(int|string $districtId): array
+    {
+        return array_map(
+            fn (array $item) => $this->normalizeLocationItem($item, ['subdistrict_id', 'sub_district_id', 'id'], ['subdistrict_name', 'sub_district_name', 'sub_district', 'name']),
+            $this->client->get("/v1/destination/sub-district/{$districtId}")
+        );
+    }
+
     public function calculateDomestic(array $params): array
     {
         return $this->calculate('domestic', $params);
     }
 
+    public function calculateDistrictDomestic(array $params): array
+    {
+        return $this->calculateUsingEndpoint('domestic', '/v1/calculate/district/domestic-cost', $params);
+    }
+
     public function calculateInternational(array $params): array
     {
         return $this->calculate('international', $params);
+    }
+
+    public function trackWaybill(string $awb, string $courier, int|string|null $lastPhoneNumber = null): array
+    {
+        $params = [
+            'awb' => $awb,
+            'courier' => $courier,
+        ];
+
+        if ($lastPhoneNumber !== null && $lastPhoneNumber !== '') {
+            $params['last_phone_number'] = (string) $lastPhoneNumber;
+        }
+
+        return $this->client->post('/v1/track/waybill', $params);
     }
 
     public function calculate(string $zone, array $params): array
@@ -69,18 +120,7 @@ class Rajaongkir
             ? '/v1/calculate/international-cost'
             : '/v1/calculate/domestic-cost';
 
-        $raw = [];
-        foreach (array_chunk((array) $params['courier'], 7) as $courierChunk) {
-            $raw = array_merge($raw, $this->client->post($endpoint, array_merge($params, [
-                'courier' => implode(':', $courierChunk),
-            ])));
-        }
-
-        $parsed = $this->parseRates($zone, $raw);
-        $parsed = $this->filterSelectedServices($zone, $parsed);
-        $parsed = $this->sortRates($parsed, $this->config['sort_shipping'] ?? 'no');
-
-        return ['parsed' => array_values($parsed), 'raw' => $raw];
+        return $this->calculateUsingEndpoint($zone, $endpoint, $params);
     }
 
     public function quote(array $cart, array $destination, array $options = []): array
@@ -124,6 +164,47 @@ class Rajaongkir
         $params['weight'] = (int) $params['weight'];
 
         return $params;
+    }
+
+    private function calculateUsingEndpoint(string $zone, string $endpoint, array $params): array
+    {
+        $params = $this->normalizeParams($zone, $params);
+
+        $raw = [];
+        foreach (array_chunk((array) $params['courier'], 7) as $courierChunk) {
+            $raw = array_merge($raw, $this->client->post($endpoint, array_merge($params, [
+                'courier' => implode(':', $courierChunk),
+            ])));
+        }
+
+        $parsed = $this->parseRates($zone, $raw);
+        $parsed = $this->filterSelectedServices($zone, $parsed);
+        $parsed = $this->sortRates($parsed, $this->config['sort_shipping'] ?? 'no');
+
+        return ['parsed' => array_values($parsed), 'raw' => $raw];
+    }
+
+    private function normalizeLocationItem(array $item, array $idKeys, array $nameKeys): array
+    {
+        $id = $this->firstValue($item, $idKeys);
+        $name = $this->firstValue($item, $nameKeys);
+
+        return array_merge($item, [
+            'id' => $id,
+            'text' => $name,
+            'name' => $name,
+        ]);
+    }
+
+    private function firstValue(array $item, array $keys): mixed
+    {
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $item) && $item[$key] !== null && $item[$key] !== '') {
+                return $item[$key];
+            }
+        }
+
+        return null;
     }
 
     private function parseRates(string $zone, array $raw): array

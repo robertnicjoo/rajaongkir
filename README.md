@@ -94,6 +94,8 @@ class CheckoutController
 
 ## Search Destinations
 
+### Search-Based Lookup
+
 Domestic destination search:
 
 ```php
@@ -121,6 +123,45 @@ International destination search:
 $countries = Rajaongkir::searchInternationalDestination('Singapore');
 ```
 
+### Province, City, District, and Sub-District Lookup
+
+You can also use the structured Indonesian location hierarchy endpoints.
+
+Get all provinces:
+
+```php
+$provinces = Rajaongkir::provinces();
+```
+
+Get cities by province ID:
+
+```php
+$cities = Rajaongkir::cities($provinceId);
+```
+
+Get districts by city ID:
+
+```php
+$districts = Rajaongkir::districts($cityId);
+```
+
+Get sub-districts by district ID:
+
+```php
+$subDistricts = Rajaongkir::subDistricts($districtId);
+```
+
+The package normalizes each item with common keys:
+
+```php
+[
+    'id' => 1,
+    'text' => 'Bali',
+    'name' => 'Bali',
+    // Original API fields are preserved as well.
+]
+```
+
 ## Calculate Shipping Costs
 
 Domestic rates:
@@ -142,6 +183,17 @@ $rates = Rajaongkir::calculateInternational([
     'destination' => '702',
     'weight' => 1200,
     'courier' => ['jne', 'pos'],
+]);
+```
+
+District-level domestic rates:
+
+```php
+$rates = Rajaongkir::calculateDistrictDomestic([
+    'origin' => '4570',
+    'destination' => '4571',
+    'weight' => 1200,
+    'courier' => ['jne', 'jnt', 'pos'],
 ]);
 ```
 
@@ -167,6 +219,39 @@ The calculation methods return:
 [
     'parsed' => [...],
     'raw' => [...],
+]
+```
+
+## Track Shipments
+
+Track a shipment by AWB number and courier:
+
+```php
+$tracking = Rajaongkir::trackWaybill(
+    awb: 'YOUR_AWB_NUMBER',
+    courier: 'jne',
+);
+```
+
+Some couriers require the last 5 digits of the recipient phone number for validation, including JNE:
+
+```php
+$tracking = Rajaongkir::trackWaybill(
+    awb: 'YOUR_AWB_NUMBER',
+    courier: 'jne',
+    lastPhoneNumber: '12345',
+);
+```
+
+The API response contains shipment summary, details, delivery status, and manifest history when available:
+
+```php
+[
+    'delivered' => true,
+    'summary' => [...],
+    'details' => [...],
+    'delivery_status' => [...],
+    'manifest' => [...],
 ]
 ```
 
@@ -213,8 +298,14 @@ Available routes:
 ```text
 GET  /api/rajaongkir/destinations/domestic?search=Jakarta
 GET  /api/rajaongkir/destinations/international?search=Singapore
+GET  /api/rajaongkir/destinations/provinces
+GET  /api/rajaongkir/destinations/cities/{provinceId}
+GET  /api/rajaongkir/destinations/districts/{cityId}
+GET  /api/rajaongkir/destinations/sub-districts/{districtId}
 POST /api/rajaongkir/costs/domestic
 POST /api/rajaongkir/costs/international
+POST /api/rajaongkir/costs/district/domestic
+POST /api/rajaongkir/track/waybill
 ```
 
 Cost request body:
@@ -227,6 +318,20 @@ Cost request body:
   "courier": ["jne", "jnt", "pos"]
 }
 ```
+
+District domestic cost requests use the same body shape, but `origin` and `destination` should be district IDs.
+
+Tracking request body:
+
+```json
+{
+  "awb": "YOUR_AWB_NUMBER",
+  "courier": "jne",
+  "last_phone_number": "12345"
+}
+```
+
+`last_phone_number` is optional for the package request, but certain couriers may require it.
 
 ## API Key Validation
 
