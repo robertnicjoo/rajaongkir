@@ -1,8 +1,18 @@
-# RajaOngkir for Laravel
+# RajaOngkir Komerce API for Laravel
 
-Laravel package for RajaOngkir/Komerce destination lookup and shipping cost calculation.
+Laravel package for the latest RajaOngkir Komerce API, including the current 2026 RajaOngkir API endpoints for destination lookup, shipping cost calculation, district-level shipping costs, and AWB tracking.
 
-This package provides a Laravel-native API client, facade, optional API routes, courier metadata, and helpers for domestic and international shipping rates.
+This package provides a Laravel-native API client, facade, optional API routes, courier metadata, and helpers for domestic and international shipping workflows.
+
+Built and maintained by [PT. Nicxon International Solutions](https://nicxonsolutions.com).
+
+## Why This Package Exists
+
+RajaOngkir is widely used in Indonesian ecommerce, but the Laravel ecosystem has lacked an up-to-date package for the current RajaOngkir Komerce API. RajaOngkir itself does not provide an official Laravel package, and many existing community packages target older API versions or outdated endpoint structures.
+
+[PT. Nicxon International Solutions](https://nicxonsolutions.com) created this package to fill that gap: a production-ready Laravel integration for the modern RajaOngkir Komerce API, with support for the latest destination hierarchy, domestic and international rates, district-level shipping cost calculation, and package tracking.
+
+All rights reserved by PT. Nicxon International Solutions.
 
 ## Requirements
 
@@ -385,7 +395,10 @@ $international = Rajaongkir::couriers('international');
 
 GPL-2.0-or-later.
 
+Copyright (c) PT. Nicxon International Solutions. All rights reserved.
+
 ## Support
 
+- Website: https://nicxonsolutions.com
 - Issues: https://github.com/robertnicjoo/rajaongkir/issues
 - Source: https://github.com/robertnicjoo/rajaongkir
