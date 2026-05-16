@@ -24,6 +24,47 @@ class Rajaongkir
         return Couriers::forZone($zone, $accountType ?? $this->accountType());
     }
 
+    public function courier(string $filter = 'all', string $zone = 'all', ?string $accountType = null): array|null
+    {
+        $couriers = $this->couriers($zone, $accountType);
+
+        if ($filter === 'all') {
+            return $couriers;
+        }
+
+        $needle = strtolower($filter);
+
+        foreach ($couriers as $courier) {
+            if (
+                strtolower((string) $courier['code']) === $needle
+                || strtolower((string) $courier['response_code']) === $needle
+                || strtolower((string) $courier['label']) === $needle
+            ) {
+                return $courier;
+            }
+        }
+
+        $matches = [];
+        foreach ($couriers as $code => $courier) {
+            $services = array_merge(
+                $courier['services_domestic'] ?? [],
+                $courier['services_international'] ?? []
+            );
+
+            $matchedServices = array_filter($services, function (string $label, string $service) use ($needle) {
+                return strtolower($service) === $needle || str_contains(strtolower($label), $needle);
+            }, ARRAY_FILTER_USE_BOTH);
+
+            if ($matchedServices) {
+                $matches[$code] = array_merge($courier, [
+                    'matched_services' => $matchedServices,
+                ]);
+            }
+        }
+
+        return $matches ?: null;
+    }
+
     public function searchDomesticDestination(string $query): array
     {
         return array_map(fn (array $item) => [

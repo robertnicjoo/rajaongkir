@@ -80,13 +80,15 @@ Enabled couriers and services are configured in `selected_couriers`.
 
 ## Basic Usage
 
-Use the facade:
+Use the facade when calling methods statically:
 
 ```php
 use Nicxonsolutions\Rajaongkir\Facades\Rajaongkir;
 
 $destinations = Rajaongkir::searchDomesticDestination('Jakarta');
 ```
+
+Make sure you import `Nicxonsolutions\Rajaongkir\Facades\Rajaongkir` for static-style calls. If you import `Nicxonsolutions\Rajaongkir\Rajaongkir`, use dependency injection instead.
 
 Or inject the service:
 
@@ -383,6 +385,16 @@ $all = Rajaongkir::couriers();
 $domestic = Rajaongkir::couriers('domestic');
 $international = Rajaongkir::couriers('international');
 ```
+
+Use `courier()` when you want to fetch all couriers, one courier, or couriers matching a service code:
+
+```php
+$all = Rajaongkir::courier('all');
+$jne = Rajaongkir::courier('jne');
+$regularServices = Rajaongkir::courier('REG');
+```
+
+When the filter matches a courier code, response code, or courier label, one courier is returned. When the filter matches a service code or service label, matching couriers are returned with a `matched_services` key.
 
 ## Production Notes
 
