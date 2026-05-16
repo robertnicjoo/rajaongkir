@@ -38,10 +38,24 @@ class RajaongkirController extends Controller
         ]);
     }
 
+    public function province(int|string $provinceId): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->rajaongkir->province($provinceId),
+        ]);
+    }
+
     public function cities(int|string $provinceId): JsonResponse
     {
         return response()->json([
             'data' => $this->rajaongkir->cities($provinceId),
+        ]);
+    }
+
+    public function city(int|string $provinceId, int|string $cityId): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->rajaongkir->city($provinceId, $cityId),
         ]);
     }
 
@@ -52,10 +66,24 @@ class RajaongkirController extends Controller
         ]);
     }
 
+    public function district(int|string $cityId, int|string $districtId): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->rajaongkir->district($cityId, $districtId),
+        ]);
+    }
+
     public function subDistricts(int|string $districtId): JsonResponse
     {
         return response()->json([
             'data' => $this->rajaongkir->subDistricts($districtId),
+        ]);
+    }
+
+    public function subDistrict(int|string $districtId, int|string $subDistrictId): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->rajaongkir->subDistrict($districtId, $subDistrictId),
         ]);
     }
 

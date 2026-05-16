@@ -6,11 +6,30 @@ This package provides a Laravel-native API client, facade, optional API routes, 
 
 Built and maintained by [PT. Nicxon International Solutions](https://nicxonsolutions.com).
 
+## Table of Contents
+
+- [Why This Package Exists](#why-this-package-exists)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Basic Usage](#basic-usage)
+- [Search Destinations](#search-destinations)
+- [Calculate Shipping Costs](#calculate-shipping-costs)
+- [Track Shipments](#track-shipments)
+- [Checkout Quote Helper](#checkout-quote-helper)
+- [Optional API Routes](#optional-api-routes)
+- [API Key Validation](#api-key-validation)
+- [Error Handling](#error-handling)
+- [Courier Metadata](#courier-metadata)
+- [Production Notes](#production-notes)
+- [License](#license)
+- [Support](#support)
+
 ## Why This Package Exists
 
 RajaOngkir is widely used in Indonesian ecommerce, but the Laravel ecosystem has lacked an up-to-date package for the current RajaOngkir Komerce API. RajaOngkir itself does not provide an official Laravel package, and many existing community packages target older API versions or outdated endpoint structures.
 
-[PT. Nicxon International Solutions](https://nicxonsolutions.com) created this package to fill that gap: a production-ready Laravel integration for the modern RajaOngkir Komerce API, with support for the latest destination hierarchy, domestic and international rates, district-level shipping cost calculation, and package tracking.
+I at [PT. Nicxon International Solutions](https://nicxonsolutions.com) created this package to fill that gap: a production-ready Laravel integration for the modern RajaOngkir Komerce API, with support for the latest destination hierarchy, domestic and international rates, district-level shipping cost calculation, and package tracking.
 
 All rights reserved by PT. Nicxon International Solutions.
 
@@ -145,10 +164,28 @@ Get all provinces:
 $provinces = Rajaongkir::provinces();
 ```
 
+Get one province by province ID:
+
+```php
+$province = Rajaongkir::province($provinceId);
+```
+
 Get cities by province ID:
 
 ```php
 $cities = Rajaongkir::cities($provinceId);
+```
+
+Get one city by province ID and city ID:
+
+```php
+$city = Rajaongkir::city($provinceId, $cityId);
+```
+
+If you only have the city ID, you can search all provinces:
+
+```php
+$city = Rajaongkir::findCity($cityId);
 ```
 
 Get districts by city ID:
@@ -157,10 +194,22 @@ Get districts by city ID:
 $districts = Rajaongkir::districts($cityId);
 ```
 
+Get one district by city ID and district ID:
+
+```php
+$district = Rajaongkir::district($cityId, $districtId);
+```
+
 Get sub-districts by district ID:
 
 ```php
 $subDistricts = Rajaongkir::subDistricts($districtId);
+```
+
+Get one sub-district by district ID and sub-district ID:
+
+```php
+$subDistrict = Rajaongkir::subDistrict($districtId, $subDistrictId);
 ```
 
 The package normalizes each item with common keys:
@@ -311,9 +360,13 @@ Available routes:
 GET  /api/rajaongkir/destinations/domestic?search=Jakarta
 GET  /api/rajaongkir/destinations/international?search=Singapore
 GET  /api/rajaongkir/destinations/provinces
+GET  /api/rajaongkir/destinations/provinces/{provinceId}
 GET  /api/rajaongkir/destinations/cities/{provinceId}
+GET  /api/rajaongkir/destinations/cities/{provinceId}/{cityId}
 GET  /api/rajaongkir/destinations/districts/{cityId}
+GET  /api/rajaongkir/destinations/districts/{cityId}/{districtId}
 GET  /api/rajaongkir/destinations/sub-districts/{districtId}
+GET  /api/rajaongkir/destinations/sub-districts/{districtId}/{subDistrictId}
 POST /api/rajaongkir/costs/domestic
 POST /api/rajaongkir/costs/international
 POST /api/rajaongkir/costs/district/domestic

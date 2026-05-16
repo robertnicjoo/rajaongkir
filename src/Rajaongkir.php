@@ -97,12 +97,35 @@ class Rajaongkir
         );
     }
 
+    public function province(int|string $provinceId): ?array
+    {
+        return $this->findLocationItem($this->provinces(), $provinceId);
+    }
+
     public function cities(int|string $provinceId): array
     {
         return array_map(
             fn (array $item) => $this->normalizeLocationItem($item, ['city_id', 'id'], ['city_name', 'city', 'name']),
             $this->client->get("/v1/destination/city/{$provinceId}")
         );
+    }
+
+    public function city(int|string $provinceId, int|string $cityId): ?array
+    {
+        return $this->findLocationItem($this->cities($provinceId), $cityId);
+    }
+
+    public function findCity(int|string $cityId): ?array
+    {
+        foreach ($this->provinces() as $province) {
+            $city = $this->city($province['id'], $cityId);
+
+            if ($city !== null) {
+                return $city;
+            }
+        }
+
+        return null;
     }
 
     public function districts(int|string $cityId): array
@@ -113,12 +136,22 @@ class Rajaongkir
         );
     }
 
+    public function district(int|string $cityId, int|string $districtId): ?array
+    {
+        return $this->findLocationItem($this->districts($cityId), $districtId);
+    }
+
     public function subDistricts(int|string $districtId): array
     {
         return array_map(
             fn (array $item) => $this->normalizeLocationItem($item, ['subdistrict_id', 'sub_district_id', 'id'], ['subdistrict_name', 'sub_district_name', 'sub_district', 'name']),
             $this->client->get("/v1/destination/sub-district/{$districtId}")
         );
+    }
+
+    public function subDistrict(int|string $districtId, int|string $subDistrictId): ?array
+    {
+        return $this->findLocationItem($this->subDistricts($districtId), $subDistrictId);
     }
 
     public function calculateDomestic(array $params): array
@@ -242,6 +275,17 @@ class Rajaongkir
         foreach ($keys as $key) {
             if (array_key_exists($key, $item) && $item[$key] !== null && $item[$key] !== '') {
                 return $item[$key];
+            }
+        }
+
+        return null;
+    }
+
+    private function findLocationItem(array $items, int|string $id): ?array
+    {
+        foreach ($items as $item) {
+            if ((string) ($item['id'] ?? '') === (string) $id) {
+                return $item;
             }
         }
 
